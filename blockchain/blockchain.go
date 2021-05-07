@@ -15,6 +15,11 @@ type BlockChain struct {
 	Database *badger.DB
 }
 
+type BlockChainIterator struct {
+	CurrentHash []byte
+	Database    *badger.DB
+}
+
 func InitBlockChain() *BlockChain {
 	var lastHash []byte
 
@@ -98,4 +103,34 @@ func (chain *BlockChain) AddBlock(data string) {
 		return err
 	})
 	HandleError(err)
+}
+
+// Iterator construct new iterator from blockchain's last hash and database
+func (chain *BlockChain) Iterator() *BlockChainIterator {
+	// will be iterating from last hash to genesis, so use blockchain's last hash to initialzie iterator
+	iter := &BlockChainIterator{chain.LastHash, chain.Database}
+	return iter
+}
+
+func (iter *BlockChainIterator) Next() *Block {
+	var block *Block
+
+	err := iter.Database.View(func(txn *badger.Txn) error {
+		// get serialized current hash
+		item, err := txn.Get(iter.CurrentHash)
+		HandleError(err)
+		err = item.Value(func(val []byte) error {
+			// This func with val would only be called if item.Value encounters no error.
+			// Accessing val here is valid.
+			fmt.Printf("Last Hash is: %s\n", val)
+			// Copy and deserialize encoded val
+			block = Deserialize(append([]byte{}, val...))
+			return nil
+		})
+		return err
+	})
+	HandleError(err)
+	// update iterator's current hash
+	iter.CurrentHash = block.PRevHash
+	return block
 }
