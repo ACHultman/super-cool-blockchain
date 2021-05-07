@@ -1,9 +1,10 @@
 package blockchain
 
-// BlockChain TEMP array type
-type BlockChain struct {
-	Blocks []*Block
-}
+import (
+	"bytes"
+	"encoding/gob"
+	"log"
+)
 
 type Block struct {
 	Hash     []byte
@@ -26,16 +27,43 @@ func CreateBlock(data string, prevHash []byte) *Block {
 	return block
 }
 
-func (chain *BlockChain) AddBlock(data string) {
-	prevBlock := chain.Blocks[len(chain.Blocks)-1] // get previous block in chain
-	new := CreateBlock(data, prevBlock.Hash)       // create block from data and previous block's hash
-	chain.Blocks = append(chain.Blocks, new)       // add new block to chain
-}
-
 func Genesis() *Block {
 	return CreateBlock("Genesis", []byte{})
 }
 
-func InitBlockChain() *BlockChain {
-	return &BlockChain{[]*Block{Genesis()}}
+func (b *Block) Serialize() []byte {
+	// init bytes buffer
+	var res bytes.Buffer
+
+	// init encoder
+	encoder := gob.NewEncoder(&res)
+
+	// encode block
+	err := encoder.Encode(b)
+
+	HandleError(err)
+
+	// return bytes portion of block
+	return res.Bytes()
+}
+
+func Deserialize(data []byte) *Block {
+	// init block
+	var block Block
+
+	// init decoder
+	decoder := gob.NewDecoder(bytes.NewReader(data))
+
+	// decode into block
+	err := decoder.Decode(&block)
+
+	HandleError(err)
+
+	return &block
+}
+
+func HandleError(err error) {
+	if err != nil {
+		log.Panic(err)
+	}
 }
