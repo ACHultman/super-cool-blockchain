@@ -53,10 +53,9 @@ func InitBlockChain() *BlockChain {
 			// Get last hash value
 			err = item.Value(func(val []byte) error {
 				// This func with val would only be called if item.Value encounters no error.
-				// Accessing val here is valid.
-				fmt.Printf("Last Hash is: %s\n", val)
 				// Copying or parsing val is valid.
 				lastHash = append([]byte{}, val...)
+				fmt.Printf("Last Hash is: %x\n", lastHash)
 				return nil
 			})
 			return err
@@ -78,10 +77,9 @@ func (chain *BlockChain) AddBlock(data string) {
 		HandleError(err)
 		err = item.Value(func(val []byte) error {
 			// This func with val would only be called if item.Value encounters no error.
-			// Accessing val here is valid.
-			fmt.Printf("Last Hash is: %s\n", val)
 			// Copying or parsing val is valid.
 			lastHash = append([]byte{}, val...)
+			fmt.Printf("Last Hash is: %x\n", lastHash)
 			return nil
 		})
 		return err
@@ -121,10 +119,9 @@ func (iter *BlockChainIterator) Next() *Block {
 		HandleError(err)
 		err = item.Value(func(val []byte) error {
 			// This func with val would only be called if item.Value encounters no error.
-			// Accessing val here is valid.
-			fmt.Printf("Last Hash is: %s\n", val)
 			// Copy and deserialize encoded val
 			block = Deserialize(append([]byte{}, val...))
+			fmt.Printf("Last Hash is: %x\n", block.Hash)
 			return nil
 		})
 		return err
